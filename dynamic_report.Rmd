@@ -1,0 +1,108 @@
+---
+title: Dynamic report of typical gym goers 
+output: html_fragment
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, message=FALSE, warning=FALSE, error=FALSE)
+library(tidyverse)
+library(readr)
+```
+
+```{css}
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+}
+h1 {
+  color: #2c3e50;
+}
+
+
+```
+
+## Comparison between the number of male and female gymgoers at Cityfitness Ormiston
+
+The plot below shows the number of females vs males gym-goers  from Monday - Friday accross a 2-week period.
+
+```{r}
+library(tidyverse)
+#unfiltered data
+logged_data <- read_csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTfad9PEopeQCyBHoPNnajFqsHCx16krDeCBP-0QqZphTZ3jwusKO92dTPPmWoXnaw5MOXrgBojwQNV/pub?output=csv")
+logged_data <- logged_data[, -c(1,2)]
+
+
+#processed data
+latest_data <- logged_data %>% rename(weekday = 1,
+                                      time_of_day = 2,
+                                      cardio = 3,
+                                      females = 4,
+                                      males = 5,
+                                      non_binary = 6,
+                                      Total_people = 7)
+
+
+
+#plot 1 data
+plot1_data <- latest_data %>% 
+  select(weekday, males, females, Total_people)
+
+
+#plot2_data
+plot2_data <- latest_data %>% 
+  select(weekday, cardio)
+
+#average number of men that go to the gym rounded down
+average_men <- floor(latest_data$males %>% sum()/length(latest_data$males))
+
+
+#average number of women that go to the gym (rounded down)
+average_female <- floor(latest_data$females %>% sum()/length(latest_data$females))
+
+#avaerge cardio
+avg_cardio <- floor(latest_data$cardio %>% sum()/length(latest_data$cardio))
+
+
+
+#average number of people that do cardio
+cardio_avg <- floor(latest_data$cardio %>% sum()/length(latest_data$cardio))
+
+#plot 1
+
+plot1_data_long <- plot1_data %>%
+  pivot_longer(cols = c("males", "females"), names_to = "Gender", values_to = "Count")
+
+
+
+
+
+
+# Plot with males and females as separate bars
+ggplot(plot1_data_long, aes(x = factor(weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")), 
+                            y = Count, fill = Gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Males vs. Females per Weekday",
+       subtitle = "Comparison of gym attendance by gender",
+       x = "Weekday",
+       y = "Total People")
+ 
+  
+
+
+#plot with amount of people doing cardio each day
+ggplot(plot2_data, aes(x = factor(weekday, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday")), 
+                       y = cardio)) + 
+  geom_bar(stat = "identity", position = "dodge", fill = "purple") + 
+  labs(title = "Number of people doing Cardio",
+       subtitle = "(includes treadmills, stairmaster, rowing machines, cardio bikes, etc)", 
+       x = "Weekday",
+       y = "Number of People")
+
+  
+
+
+```
+
+The average attendance of female gym-goers per period (either evening or morning) is `r average_female` and the average attendance of male gym-goers is `r average_men`. The average number of people doing cardio is 18. 
+
+
